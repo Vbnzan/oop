@@ -2,7 +2,7 @@
 
 
 
-Moving::Moving(string id) {
+Moving::Moving() {
 	turning_matrix = matrix<double>(3, 3);
 	turning_matrix.clear();
 	(turning_matrix)(0, 0) = 1.;
@@ -14,7 +14,7 @@ Moving::Moving(string id) {
 	moving_vect.clear();
 	//создали нулевой вектор
 
-	this->id = id;
+	this->id = "";
 }
 
 Moving::Moving(vector<double> &vect, string id) {
@@ -93,7 +93,7 @@ Moving::Moving(matrix<double> &turning_matrix, vector<double> &moving_vect, stri
 	this->id = id;
 }
 
-vector<double> Moving::operator() (vector<double> &obj) {
+simple_object* Moving::operator() (simple_object &obj) {
 
 
 	vector<double>* object = new vector<double>(obj); //копия
@@ -112,19 +112,22 @@ vector<double> Moving::operator() (vector<double> &obj) {
 		res(3) = 1;
 		res += moving_vect; //смещение
 	}
-	return res;
+
+	//simple_object ret(res);
+	simple_object* r = new simple_object(res); //сделали simple_object из результата
+	return r;
 }
 
-struct Line* Moving::operator() (struct Line &obj) { //для преобразования линии просто преобразуем и точку и вектор в ней
-	vector<double> res_point = (*this)(obj.point);
-	vector<double> res_direct = (*this)(obj.direction);
+Line* Moving::operator() (Line &obj) { //для преобразования линии просто преобразуем и точку и вектор в ней
+	simple_object res_point = *(*this)(obj.point);
+	simple_object res_direct = *(*this)(obj.direction);
 	Line *res = new Line;
 	res->point = res_point;
 	res->direction = res_direct;
 	return res;
 }
 
-vector<double> Moving::inverse_transformation(vector<double> &obj) {
+simple_object Moving::inverse_transformation(simple_object &obj) {
 	vector<double> mov_vect = (-1) * (moving_vect);
 	Moving mov1 = Moving(mov_vect, "s"); //смещение на -1 * moving_vect
 
@@ -133,8 +136,8 @@ vector<double> Moving::inverse_transformation(vector<double> &obj) {
 	zero.clear();
 	Moving mov2 = Moving(tr, zero, "dont matter");  //умножение на обратную матрицу
 
-	vector<double> m1 = mov1(obj);
-	vector<double> res = mov2(m1); //сначала смещаемся, потом умножаем
+	simple_object m1 = *mov1(obj);
+	simple_object res = *mov2(m1); //сначала смещаемся, потом умножаем
 	return res;
 }
 
@@ -186,3 +189,170 @@ void print_vect_4(vector<double> obj) {
 	std::cout << "(" << obj(0) << ", " << obj(1) << ", " << obj(2) << ", " << obj(3) << ")" << std::endl;
 }
 
+double angle_between_vectors(vector<double>& vec1, vector<double>& vec2) 
+{
+	double len1 = pow((pow(vec1(0), 2) + pow(vec1(1), 2) + pow(vec1(2), 2)), 0.5);
+	double len2 = pow((pow(vec2(0), 2) + pow(vec2(1), 2) + pow(vec2(2), 2)), 0.5);
+	double scalar_mult = vec1(0) * vec2(0) + vec1(1) * vec2(1) + vec1(2) * vec2(2);
+	double cos_angle = scalar_mult / len1 / len2; //известная формула косинуса угла
+	double angle = acos(cos_angle); //арккосинус
+	return angle;
+}
+
+
+
+Affine_transformation::Affine_transformation(int axis, double coeff, string id) {
+	turning_matrix = matrix<double>(3, 3);
+	turning_matrix.clear();
+	(turning_matrix)(0, 0) = coeff;
+	(turning_matrix)(1, 1) = coeff;
+	(turning_matrix)(2, 2) = coeff;
+
+	if (axis < 0 || axis >= 3)
+	{
+		std::cout << "Wrong argument: axis must be from 0 to 2" << std::endl;
+		return;
+	}
+	turning_matrix(axis, axis) = 1.; //растягиваем по всем координатам кроме выделенной оси
+
+	moving_vect = vector<double>(4);
+	moving_vect.clear();
+	//создали нулевой вектор
+
+	this->id = id;
+}
+
+Projection::Projection(matrix<double>& projection_matrix, string id)
+{
+	if (projection_matrix.size1() != 4 || projection_matrix.size2() != 4)
+	{
+		std::cout << "Wrong argument: matrix must be 4*4" << std::endl;
+		return;
+	};
+	this->proj_matrix = projection_matrix;
+	this->id = id;
+};
+
+
+simple_object* Projection::operator() (simple_object &obj) {
+	vector<double> res = prod(proj_matrix, obj); //применение проекции - умножение объекта на матрицу преобразования
+	simple_object* r = new simple_object(res);
+	return r;
+};
+
+
+Line* Projection::operator() (Line& obj) { //для преобразования линии просто преобразуем и точку и вектор в ней
+	simple_object res_point = *(*this)(obj.point);
+	simple_object res_direct = *(*this)(obj.direction);
+	Line* res = new Line;
+	res->point = res_point;
+	res->direction = res_direct;
+	return res;
+}
+
+
+
+void Operation_list::add(Transformation& elem) {
+	operations[elem.get_id()] = elem;
+}
+
+void Operation_list::erase(string id) {
+	operations.erase(id);
+};
+
+Transformation* Operation_list::find(string id) {
+	auto el = operations.find(id);
+	Transformation* res;
+	if (el == operations.end()) 
+	{
+		res = NULL;
+	}
+	else 
+	{
+		res = &(el->second);
+	}
+	return res;
+}
+
+
+
+
+void Line::print_self() const{
+	std::cout << "p: (" << point(0) << ", " << point(1) << ", " << point(2) << ", " << point(3) << ") d: (" << direction(0) << ", " << direction(1) << ", " << direction(2) << ", " << direction(3) << ")" << std::endl;
+};
+
+void simple_object::print_self() const {
+	print_vect_4(*this);
+};
+
+void print_list_of_objects(map<string, object*> list) {
+	map<string, object*>::const_iterator it;
+	it = list.begin();
+	for (; it != list.end(); ++it) {
+		std::cout << it->first << std::endl;
+		//printf("%s   ", it->first);
+		(it->second)->print_self();
+	};
+}
+
+int Programm_element::execute() {
+	Transformation* trans_ptr = operations->find(trans);
+	if (trans_ptr == NULL) { //проверяем наличие преобразования
+		printf("-1");
+		return -1; };
+	auto arg = (objects->find(argument));
+	if (arg == objects->end()) { //проверяем наличие аргумента
+		printf("-2");
+		return -2; };
+	object* argument_ptr = arg->second;
+
+
+	object* res = (*trans_ptr)(*argument_ptr); //по этой части у меня и вопрос
+
+	//res->print_self();
+	(*objects)[result] = res;
+
+	return 0;
+};
+
+simple_object::simple_object(vector<double> a) { //создаем simple_object с таким же содержимым, что и заданный вектор
+	auto s = a.size();
+	this->resize(s);
+	for (int i = 0; i < s; i++)
+	{
+		(*this)(i) = a(i);
+	}
+}
+
+Programm_element::Programm_element(string trans, string argument, string result, Operation_list* operations, map<string, object*>* objects)
+{
+	this->trans = trans;
+	this->argument = argument;
+	this->result = result;
+	this->operations = operations;
+	this->objects = objects;
+}
+
+Programm_of_transformations::Programm_of_transformations(Operation_list* operations, map<string, object*>* objects)
+{
+	this->operations = operations;
+	this->objects = objects;
+}
+
+void Programm_of_transformations::add_elem(string trans, string argument, string result)
+{
+	Programm_element el = Programm_element(trans, argument, result, operations, objects);
+	programm.push_back(el);
+}
+
+int Programm_of_transformations::execute() 
+{
+	for (auto &el: programm)
+	{
+		if (el.execute())
+		{
+			return -1;
+		}
+	}
+	return 0;
+}
