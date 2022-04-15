@@ -173,8 +173,8 @@ void test_transformation() {
 
 	
 	Operation_list op; //создали таблицу преобразований
-	op.add(pr0);
-	op.add(af0);
+	op.add(&pr0);
+	op.add(&af0);
 	op.erase("af0");  //добавили и удалили, все  хорошо
 
 	map<string, object*> List_of_objects; //создали список объектов
@@ -234,9 +234,9 @@ void test_programm_transformation()
 	double angle1 = PI / 2;
 	Moving t3(b, angle1, "t3"); //создали поворот на pi/2 вокруг b
 
-	op.add(pr0); //добавили операции в таблицу
-	op.add(af0);
-	op.add(t3);
+	op.add(&pr0); //добавили операции в таблицу
+	op.add(&af0);
+	op.add(&t3);
 
 	Programm_of_transformations pr(&op, &List_of_objects); //создали программу
 	//pr.add_elem("pr0", "a", "a"); //добавили действий в программу

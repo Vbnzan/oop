@@ -14,7 +14,7 @@ Moving::Moving() {
 	moving_vect.clear();
 	//создали нулевой вектор
 
-	this->id = "";
+	set_id("");
 }
 
 Moving::Moving(vector<double> &vect, string id) {
@@ -38,7 +38,7 @@ Moving::Moving(vector<double> &vect, string id) {
 	moving_vect = vector<double>(vect);
 	//moving_vect - копия заданного вектора
 
-	this->id = id;
+	set_id(id);
 };
 
 Moving::Moving(vector<double> &direct, double rotation_angle, string id) {
@@ -69,7 +69,7 @@ Moving::Moving(vector<double> &direct, double rotation_angle, string id) {
 	moving_vect = vector<double>(4);
 	moving_vect.clear();
 
-	this->id = id;
+	set_id(id);
 }
 
 Moving::Moving(matrix<double> &turning_matrix, vector<double> &moving_vect, string id) {
@@ -90,7 +90,7 @@ Moving::Moving(matrix<double> &turning_matrix, vector<double> &moving_vect, stri
 	this->moving_vect = vector<double>(moving_vect);
 	//если все хорошо, то просто присваиваем
 
-	this->id = id;
+	set_id(id);
 }
 
 simple_object* Moving::operator() (simple_object &obj) {
@@ -144,7 +144,7 @@ simple_object Moving::inverse_transformation(simple_object &obj) {
 void Moving::Print_self() const //неважно
 {
 
-	std::cout << "id:" << id << std::endl;
+	std::cout << "id:" << get_id() << std::endl;
 	std::cout << "Tutning matrix:" << std::endl;
 	std::cout << turning_matrix.size1() << "  " << turning_matrix.size2() << std::endl;
 
@@ -219,7 +219,7 @@ Affine_transformation::Affine_transformation(int axis, double coeff, string id) 
 	moving_vect.clear();
 	//создали нулевой вектор
 
-	this->id = id;
+	set_id(id);
 }
 
 Projection::Projection(matrix<double>& projection_matrix, string id)
@@ -230,7 +230,7 @@ Projection::Projection(matrix<double>& projection_matrix, string id)
 		return;
 	};
 	this->proj_matrix = projection_matrix;
-	this->id = id;
+	set_id(id);
 };
 
 
@@ -252,8 +252,8 @@ Line* Projection::operator() (Line& obj) { //для преобразования линии просто пре
 
 
 
-void Operation_list::add(Transformation& elem) {
-	operations[elem.get_id()] = elem;
+void Operation_list::add(Transformation * elem) {
+	operations[(elem)->get_id()] = elem;
 }
 
 void Operation_list::erase(string id) {
@@ -269,7 +269,7 @@ Transformation* Operation_list::find(string id) {
 	}
 	else 
 	{
-		res = &(el->second);
+		res = (el->second);
 	}
 	return res;
 }

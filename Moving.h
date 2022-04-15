@@ -41,8 +41,12 @@ public:
 
 
 class Transformation { //какое-то преобразование
-protected:
+private:
 	string id;
+protected:
+	void set_id(string id) {
+		this->id = id;
+	}
 public:
 	string get_id() const{
 		return id;
@@ -53,6 +57,8 @@ public:
 		return &arg;
 	}; //не должна исполняться, внутренная функция - заглушка
 
+	virtual simple_object* operator() (simple_object& arg) { return &arg; };
+	virtual Line* operator() (Line& arg) { return &arg; };
 };
 
 
@@ -93,9 +99,9 @@ public:
 
 class Operation_list { //список преобразований, возможно будет заменен на более сложный контейнер когда-нибудь потом
 private:
-	map<string, Transformation> operations;
+	map<string, Transformation *> operations;
 public:
-	void add(Transformation &elem);
+	void add(Transformation *elem);
 	void erase(string id);
 	Transformation* find(string id); //поиск элемента; возвращает NULL, если элемента нету в списке
 };
