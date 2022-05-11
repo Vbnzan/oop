@@ -277,11 +277,11 @@ Transformation* Operation_list::find(string id) {
 
 
 
-void Line::print_self() const{
+void Line::print_self() {
 	std::cout << "p: (" << point(0) << ", " << point(1) << ", " << point(2) << ", " << point(3) << ") d: (" << direction(0) << ", " << direction(1) << ", " << direction(2) << ", " << direction(3) << ")" << std::endl;
 };
 
-void simple_object::print_self() const {
+void simple_object::print_self() {
 	print_vect_4(*this);
 };
 
@@ -307,7 +307,7 @@ int Programm_element::execute() {
 	object* argument_ptr = arg->second;
 
 
-	object* res = (*trans_ptr)(*argument_ptr); //по этой части у меня и вопрос
+	object* res = (*trans_ptr).transform(*argument_ptr); //по этой части у меня и вопрос
 
 	//res->print_self();
 	(*objects)[result] = res;
@@ -356,3 +356,111 @@ int Programm_of_transformations::execute()
 	}
 	return 0;
 }
+
+
+
+
+object* simple_object::transform_moving(typename Moving& a){
+	object* res = a(*this);
+	return res;
+}
+
+object* Line::transform_moving(typename Moving& a) {
+	object* res = a(*this);
+	return res;
+}
+
+
+object* simple_object::transform_Affine_transformation(Affine_transformation& a){
+	object* res = a(*this);
+	return res;
+}
+
+object* Line::transform_Affine_transformation(Affine_transformation& a) {
+	object* res = a(*this);
+	return res;
+}
+
+object* simple_object::transform_projection(Projection& a) {
+	object* res = a(*this);
+	return res;
+}
+object* Line::transform_projection(Projection& a) {
+	object* res = a(*this);
+	return res;
+}
+
+
+extern "C" __declspec(dllexport) int one() { return 1; }
+
+extern "C"
+{
+	__declspec(dllexport) object* create_simple_object(double x, double y, double z, double w)
+	{
+		simple_object* obj = new simple_object;
+		obj->resize(4);
+		(*obj)[0] = x;
+		(*obj)[1] = y;
+		(*obj)[2] = z;
+		(*obj)[3] = w;
+		object* r = obj;
+		return r;
+	}
+	 __declspec(dllexport) void obj_print_self(object * obj)
+	{
+		obj->print_self();
+	}
+
+	 __declspec(dllexport) Moving* create_Moving(double x, double y, double z, char *id) {
+		 vector<double> vec(4);
+		 vec[0] = x;
+		 vec[1] = y;
+		 vec[2] = z;
+		 vec[3] = 0;
+		 Moving* res = new Moving(vec, id);
+		 return res;
+	 }
+
+	 __declspec(dllexport) object* transform(object* obj, Transformation* trans) {
+		 object *res = trans->transform(*obj);
+		 return res;
+	 }
+
+	 __declspec(dllexport) double* simple_object_values(simple_object* obj) {
+		 double* information = new double[4];
+		 for (int k = 0; k < 4; k++) {
+			 information[k] = (*obj)[k];
+		 }
+		 return information;
+	 }
+
+	 __declspec(dllexport) void delete_simple_object(simple_object* obj) {
+		 delete obj;
+	 }
+	 __declspec(dllexport) void delete_transformation(Transformation* tr) {
+		 delete tr;
+	 }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

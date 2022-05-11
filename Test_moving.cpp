@@ -33,17 +33,23 @@ void test_moving() {
 
 	vector<double> d(7); //создали непонятно что
 
+	a.print_self();
+
 	Moving t0; //создали тождевственное преобразование
+	std::cout << "t0 - identity transformation" << std::endl;
 	std::cout << "t0(a):" << std::endl;
 	(*t0(a)).print_self(); //тождевственное преобразование не меняет точку
 
 	Moving t1(b, "t1"); //сдвиг на вектор b
+	std::cout << "t1 - shift by vector b = (1,0,0,0)" << std::endl;
 	std::cout << "t1(a):" << std::endl;
 	print_vect_4(*t1(a));  //сдвиг сдвигает точку
 
 	std::cout << "t1(b):" << std::endl; //сдвиг не сдвигает вектор 
 	print_vect_4(*t1(b));
 
+	std::cout << "line1" << std::endl;
+	line1.print_self();
 	std::cout << "t1(line1):" << std::endl; //сдвиг не меняет направления, но сдвигает точку
 	Line* line2 = t1(line1);
 	std::cout << "line direction" << std::endl;
@@ -58,6 +64,7 @@ void test_moving() {
 
 	double angle1 = PI / 2;
 	Moving t3(b, angle1, "t3"); //поворот на pi/2 вокруг b
+	std::cout << "t3 - rotation by the angle pi/2 along x-axis" << std::endl;
 	std::cout << "t3(a):" << std::endl;
 	print_vect_4(*t3(a));
 
@@ -145,7 +152,7 @@ void test_transformation() {
 	line1.point = c;
 
 	Affine_transformation af0(0, 10, "af0"); //создали растяжение по оси х
-
+	std::cout << "af0(a)- stretching by 10 along x" << std::endl;
 	std::cout << "af0(a):" << std::endl; //все хорошо растягивается
 	print_vect_4(*af0(a)); 
 	std::cout << "af0(line1):" << std::endl;
@@ -252,7 +259,7 @@ void test_programm_transformation()
 
 int main() {
 	//test_moving();
-	test_transformation();
-	//test_programm_transformation();
+	//test_transformation();
+	test_programm_transformation();
 	return 0;
 }
