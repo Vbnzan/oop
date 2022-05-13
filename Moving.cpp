@@ -33,7 +33,7 @@ Moving::Moving(vector<double> &vect, string id) {
 	}
 	if (vect(3)) {
 		std::cout << "Wrong argument: moving vector must be a vector (w = 0)" << std::endl;
-		return;
+		throw std::invalid_argument("Wrong argument: moving vector must be a vector (w = 0)");
 	}
 	moving_vect = vector<double>(vect);
 	//moving_vect - копия заданного вектора
@@ -411,14 +411,19 @@ extern "C"
 		obj->print_self();
 	}
 
-	 __declspec(dllexport) Moving* create_Moving(double x, double y, double z, char *id) {
+	 __declspec(dllexport) Moving* create_Moving(double x, double y, double z,double w,  char *id) {
 		 vector<double> vec(4);
 		 vec[0] = x;
 		 vec[1] = y;
 		 vec[2] = z;
-		 vec[3] = 0;
-		 Moving* res = new Moving(vec, id);
-		 return res;
+		 vec[3] = w;
+		 try {
+			 Moving* res = new Moving(vec, id);
+			 return res;
+		 }
+		 catch (std::invalid_argument) {
+			 return NULL;
+		 }
 	 }
 
 	 __declspec(dllexport) object* transform(object* obj, Transformation* trans) {
@@ -440,6 +445,78 @@ extern "C"
 	 __declspec(dllexport) void delete_transformation(Transformation* tr) {
 		 delete tr;
 	 }
+
+	 __declspec(dllexport) Operation_list* create_operation_list() {
+		 return new Operation_list;
+	 }
+
+	 __declspec(dllexport) int add_to_op_list(Operation_list* op, Transformation* tr) {
+		 op->add(tr);
+		 return 0;
+	 }
+
+	 __declspec(dllexport) int delete_op_list(Operation_list* op) {
+		 delete op;
+		 return 0;
+	 }
+	 //
+	 __declspec(dllexport) map<string, object*>* create_obj_list() {
+		 return new map<string, object*>;
+	 }
+
+	 __declspec(dllexport) int add_to_obj_list(map<string, object*>* list, object* obj, char* name) {
+		 
+		 string n(name);
+		 list->insert(make_pair(n, obj));
+		 return 0;
+	 }
+
+	 __declspec(dllexport) int delete_object_list(map<string, object*>* li) {
+
+		 delete li;
+		 return 0;
+	 }
+
+
+	 __declspec(dllexport) Programm_of_transformations* create_tr_programm(Operation_list* operations, map<string, object*>* objects){
+		 Programm_of_transformations*  pr = new Programm_of_transformations(operations, objects);
+		 return pr;
+	 }
+
+	 __declspec(dllexport) int add_to_prog(Programm_of_transformations *pr ,char* tr, char* arg, char* res) {
+		 string trans(tr), argument(arg), result(res);
+		 pr->add_elem(trans, argument, result);
+		 return 0;
+	 }
+
+	 __declspec(dllexport) int execute_programm(Programm_of_transformations* pr) {
+		 return pr->execute();
+	 }
+
+	 __declspec(dllexport) void delete_programm(Programm_of_transformations* pr) {
+		 delete pr;
+	 }
+
+
+	 __declspec(dllexport) double* line_values(Line* obj) {
+		 double* information = new double[8];
+		 for (int k = 0; k < 4; k++) {
+			 information[k] = obj->direction[k];
+		 }
+		 for (int k = 0; k < 4; k++) {
+			 information[k + 4] = obj->point[k];
+		 }
+		 return information;
+	 }
+
+
+
+
+	 __declspec(dllexport) object* obj_from_list(map<string, object*>* list, char* name) {
+		 string n(name);
+		 return (list->find(n))->second;
+	 }
+ 
 }
 
 

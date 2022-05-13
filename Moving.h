@@ -20,6 +20,9 @@ class Moving;
 class Affine_transformation;
 class Projection;
 
+
+
+
 class object {
 public:
 	virtual void print_self() =0;
