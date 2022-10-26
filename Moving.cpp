@@ -426,6 +426,29 @@ extern "C"
 		 }
 	 }
 
+	 __declspec(dllexport) Moving* create_Moving_rotation(double x, double y, double z, double angle, char* id) {
+		 vector<double> vec(4);
+		 vec[0] = x;
+		 vec[1] = y;
+		 vec[2] = z;
+		 vec[3] = 0;
+		 Moving* res = new Moving(vec, angle, id);
+		 return res;
+	 }
+
+	 __declspec(dllexport) Projection* create_length_increment(double k, char* id) {
+		 matrix<double> m1 = matrix<double>(4, 4);
+		 m1.clear();
+		 m1(0, 0) = 1;
+		 m1(1, 1) = 1;
+		 m1(2, 2) = 1;
+		 m1(3, 3) = k;
+		 Projection* res = new Projection(m1, id);
+		 return res;
+	 }
+
+
+
 	 __declspec(dllexport) object* transform(object* obj, Transformation* trans) {
 		 object *res = trans->transform(*obj);
 		 return res;
@@ -514,9 +537,20 @@ extern "C"
 
 	 __declspec(dllexport) object* obj_from_list(map<string, object*>* list, char* name) {
 		 string n(name);
-		 return (list->find(n))->second;
+		 auto elem = list->find(n);
+		 if (elem == list->end()) { return 0; }
+		 auto obj =  elem->second;
+		 return obj;
 	 }
- 
+	 __declspec(dllexport) object* get_one_obj_from_list(map<string, object*>* list) {
+		 auto elem = list->begin();
+		 if (elem == list->end()) { return 0; }
+		 auto obj = elem->second;
+		 list->erase(elem);
+		 return obj;
+	 }
+
+
 }
 
 
